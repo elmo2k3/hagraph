@@ -1,0 +1,44 @@
+Aufrufen: 
+	Anwendungen -> Zubehör -> Terminal
+
+
+WICHTIG! Nur ganze Wochen, Monate und Jahre auswählen! Z.B. 24.12.07 - 31.12.07 und _NICHT_ 22.12.07 - 29.12.07!!!!
+
+Eingeben:
+	cd Projekte/had/hagraph		(Verzeichniss wechseln)
+	./hagraph -x 1300 -y 900 -f 2007-12-1 -t 2007-12-30 -g 2 -h 0 -i 2 -j 1	(Programm ausführen)
+
+
+Erklärung der Paramter:
+	-x (PIXEL)		Bildbreite in Pixel
+	-y (PIXEL)		Bildhöhe in Pixel
+	
+	-f (XXXX-YY-ZZ)		Datum von	Format: XXXX-YY-ZZ (X=Jahr, Y=Monat, Z=Tag)
+	-t (XXXX-YY-ZZ)		Datum bis
+
+	-g (MODUL)		erstes Modul	(Farbe: rot)
+	-h (SENSOR)		erster Sensor
+
+	-i (MODUL)		zweites Modul (optional)	(Farbe: blau)
+	-j (SENSOR)		zweiter Sensor (optional)
+
+	-k (MODUL)		drittes Modul (optional)	(Farbe: grün)
+	-l (SENSOR)		dritter Sensor (optional)
+
+	-m (MODUL)		viertes Modul (optional)	(Farbe: violett)
+	-n (SENSOR)		vierter Sensor (optional)
+
+	-o (MODUL)		fünftes Modul (optional)	(Farbe: orange)
+	-p (SENSOR)		fünfter Sensor (optional)
+
+Module, Sensoren:
+	Modul		Sensor		Ort
+	1		0		Bochum Küche
+	1		1		Bochum Gefrierfach
+	1		2		Bochum Kühlschrank
+
+	2		0		Vorlauf
+	2		1		Rücklauf
+
+	3		0		Bochum Schlafzimmer
+	3		1		Bochum Aussen
