@@ -1,5 +1,7 @@
+CFLAGS = -Wall -g
 LDFLAGS=-lgd -lmysqlclient -g
-hagraph: hagraph.c
+
+hagraph: hagraph.o
 
 clean:
-	rm hagraph
+	rm hagraph *.o

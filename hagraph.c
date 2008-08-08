@@ -56,52 +56,23 @@ Module, Sensoren:
 #include <math.h>
 #include <unistd.h>
 
-#define MYSQL_SERVER    "192.168.2.1"
+#include "hagraph.h"
+
+#define MYSQL_SERVER    "88.198.17.204"
 #define MYSQL_USER      "home_automation"
 #define MYSQL_PASS      "rfm12"
 #define MYSQL_DB        "home_automation"
 #define MYSQL_DB_WS2000	"wetterstation"
 
-#define IMG_WIDTH_STD 800
-#define IMG_HEIGHT_STD 600
-
-#define X1_SKIP 40
-#define X2_SKIP 40
-#define Y1_SKIP 40
-#define Y2_SKIP 40
-#define X1_TO_TEXT 25
-#define X1_TO_TEXT2 5
-#define Y1_TO_TEXT 20
-#define TICK_OFFSET 10
-
-#define DRAW_VERTICAL_GRID
-#define DRAW_HORIZONTAL_GRID
-
-#define SECONDS_PER_DAY (60*60*24)
-#define SECONDS_PER_WEEK (SECONDS_PER_DAY*7)
-#define SECONDS_PER_MONTH (SECONDS_PER_DAY*31)
-#define SECONDS_PER_YEAR (SECONDS_PER_DAY*366)
-
-#define TB_DAY 1
-#define TB_WEEK 2
-#define TB_MONTH 3
-#define TB_YEAR 4
 
 int IMG_WIDTH=IMG_WIDTH_STD, IMG_HEIGHT=IMG_HEIGHT_STD;
 
-void drawXLegend(gdImagePtr im, char timebase, int color);
-void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char *time_to, float *max, int *sec_max, float *min, int *sec_min, int modul, int sensor);
-int transformY(float temperature, float max, float min);
-void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *time_from, const char *time_to, char timebase, int modul, int sensor, float temp_max, float temp_min);
-void drawYLegend(gdImagePtr im, float temp_max, float temp_min, int color);
-int decideView(char *time_from, char *time_to);
 
 int main(int argc, char *argv[])
 {
 	gdImagePtr im;
 	FILE *pngout;
-	int pngx = 0, pngy = 0, white, black, red, green, blue, purple, orange;
-	char query[255];
+	int white, black, red, green, blue, purple, orange;
 	char file_output[255];
 	int sec_max, sec_min;
 	char time_from[255], time_to[255];
@@ -158,8 +129,6 @@ int main(int argc, char *argv[])
 	view = decideView(time_from, time_to);
 
 	MYSQL *mysql_connection;
-	MYSQL_RES *mysql_res;
-	MYSQL_ROW mysql_row;
 
 	mysql_connection = mysql_init(NULL);
 	if (!mysql_real_connect(mysql_connection, MYSQL_SERVER, MYSQL_USER, MYSQL_PASS, MYSQL_DB, 0, NULL, 0))
@@ -192,7 +161,7 @@ int main(int argc, char *argv[])
 		addGraph(im, mysql_connection, colors[c], time_from, time_to, view, modul_sensor[c][0], modul_sensor[c][1], temp_max, temp_min);
 	}
 	
-	drawXLegend(im, view, black);
+	drawXLegend(im, view, black, (unsigned char*)time_from);
 	drawYLegend(im, temp_max, temp_min, black);
 	pngout = fopen(file_output, "wb");
 	gdImagePng(im, pngout);
@@ -208,12 +177,8 @@ int main(int argc, char *argv[])
  * Möglichkeiten für timebase: TB_DAY, TB_WEEK, TB_MONTH, TB_YEAR
  * 
  */
-void drawXLegend(gdImagePtr im, char timebase, int color)
+void drawXLegend(gdImagePtr im, char timebase, int color, unsigned char *title)
 {
-	#define WIDTH_FOR_ONE_HOUR ((IMG_WIDTH-X1_SKIP-X2_SKIP)/24)
-	#define WIDTH_FOR_ONE_DAY_IN_WEEK ((IMG_WIDTH-X1_SKIP-X2_SKIP)/7)
-	#define WIDTH_FOR_ONE_DAY_IN_MONTH ((IMG_WIDTH-X1_SKIP-X2_SKIP)/31)
-	#define WIDTH_FOR_ONE_DAY_IN_YEAR ((IMG_WIDTH-X1_SKIP-X2_SKIP)/366)
 	int width;
 	int i,p;
 	char time[200];
@@ -226,14 +191,15 @@ void drawXLegend(gdImagePtr im, char timebase, int color)
 	switch(timebase)
 	{
 		case TB_DAY: 	if(IMG_WIDTH<2000)
-						{
-							width = WIDTH_FOR_ONE_HOUR*2;i=0,p=13;
-						}
-						else
-						{
-							width = WIDTH_FOR_ONE_HOUR; i=0; p=25;
-						}
-						break;
+				{
+					width = WIDTH_FOR_ONE_HOUR*2;i=0,p=13;
+				}
+				else
+				{
+					width = WIDTH_FOR_ONE_HOUR; i=0; p=25;
+				}
+				gdImageString(im,gdFontGetLarge(), IMG_WIDTH/2, 5, title,color); 
+				break;
 		case TB_WEEK: 	width = WIDTH_FOR_ONE_DAY_IN_WEEK; i=0; p=8; break;
 		case TB_MONTH: 	width = WIDTH_FOR_ONE_DAY_IN_MONTH; i=0; p=32; break;
 		case TB_YEAR: 	width = WIDTH_FOR_ONE_DAY_IN_YEAR; i=0; p=367; break;
@@ -248,9 +214,9 @@ void drawXLegend(gdImagePtr im, char timebase, int color)
 		switch(timebase)
 		{
 			case TB_DAY: 	if(IMG_WIDTH<2000)
-								sprintf(time,"%02d:00:00",i*2); 
-							else
-								sprintf(time,"%02d:00:00",i);
+							sprintf(time,"%02d:00:00",i*2); 
+					else
+							sprintf(time,"%02d:00:00",i);
 							break;
 			case TB_WEEK: 	if(i<7) sprintf(time,"%d",i+1); else strcpy(time,"\0");  break;
 			case TB_MONTH: 	if(i<31) sprintf(time,"%d",i+1); else strcpy(time,"\0"); break;
@@ -314,7 +280,7 @@ void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *tim
 	}
 	mysql_res = mysql_use_result(mysql_connection);
 	int i=0;
-	while(mysql_row = mysql_fetch_row(mysql_res))
+	while((mysql_row = mysql_fetch_row(mysql_res)))
 	{
 		
 		if(!mysql_row)
@@ -326,7 +292,7 @@ void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *tim
 		if(mysql_row[0]) seconds[1]	= atoi(mysql_row[0]);
 		else seconds[1]	= 0;
 		
-		if(mysql_row[1]!="0.0") temperature[1] = atof(mysql_row[4]);
+		if(strcmp(mysql_row[1],"0.0")) temperature[1] = atof(mysql_row[4]);
 		else temperature[1] = 0;
 		
 		day_of_week = atoi(mysql_row[1]) -2;	// MYSQL gibt Sonntag = 1... zurück
@@ -395,7 +361,7 @@ void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char 
 		sprintf(query,"SELECT TIME_TO_SEC(time), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY T_1 desc LIMIT 1", time_from, time_to);
 	}
 	else
-		sprintf(query,"SELECT TIME_TO_SEC(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND date>'%s' AND date<'%s' ORDER BY temperature desc LIMIT 1", modul, sensor, time_from, time_to);
+		sprintf(query,"SELECT TIME_TO_SEC(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND date>'%s' AND date<'%s' AND temperature!='85.0' ORDER BY temperature desc LIMIT 1", modul, sensor, time_from, time_to);
 		
 	if(mysql_query(mysql_connection,query))
 	{
