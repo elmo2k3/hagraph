@@ -272,7 +272,10 @@ void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *tim
 		sprintf(query,"SELECT TIME_TO_SEC(time), DAYOFWEEK(date), DAYOFMONTH(date), DAYOFYEAR(date), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY date,time asc",time_from, time_to);
 	}
 	else
-		sprintf(query,"SELECT TIME_TO_SEC(CONVERT_TZ(date,'UTC','MET')), DAYOFWEEK(CONVERT_TZ(date,'UTC','MET')), DAYOFMONTH(CONVERT_TZ(date,'UTC','MET')), DAYOFYEAR(CONVERT_TZ(date,'UTC','MET')), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND date>'%s' AND date<'%s' ORDER BY date asc", modul, sensor, time_from, time_to);
+	{
+		sprintf(query,"SELECT TIME_TO_SEC(CONVERT_TZ(date,'UTC','MET')), DAYOFWEEK(date), DAYOFMONTH(date), DAYOFYEAR(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND CONVERT_TZ(date,'UTC','MET')>'%s' AND date<'%s' ORDER BY date asc", modul, sensor, time_from, time_to);
+	}
+
 	if(mysql_query(mysql_connection,query))
 	{
 		fprintf(stderr, "%s\n", mysql_error(mysql_connection));
