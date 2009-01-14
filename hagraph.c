@@ -58,7 +58,7 @@ Module, Sensoren:
 
 #include "hagraph.h"
 
-#define MYSQL_SERVER    "88.198.17.204"
+#define MYSQL_SERVER    "192.168.2.1"
 #define MYSQL_USER      "home_automation"
 #define MYSQL_PASS      "rfm12"
 #define MYSQL_DB        "home_automation"
@@ -151,11 +151,11 @@ int main(int argc, char *argv[])
 	
 	for(c=0;c<modul_count;c++)
 	{
-		getMaxMinValues(mysql_connection, time_from, time_to, &temp_max, &sec_max, &temp_min,  &sec_min, modul_sensor[c][0],modul_sensor[c][1]);
+		getMaxMinValues(mysql_connection, time_from, time_to, &temp_max, &sec_max, &temp_min,  &sec_min, modul_sensor[c][0],modul_sensor[c][1]);	
 	}
 	temp_max = ceil(temp_max/10)*10;
 	temp_min = floor(temp_min/10)*10;
-	
+
 	for(c=0;c<modul_count;c++)
 	{
 		addGraph(im, mysql_connection, colors[c], time_from, time_to, view, modul_sensor[c][0], modul_sensor[c][1], temp_max, temp_min);
@@ -377,8 +377,7 @@ void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char 
 	mysql_free_result(mysql_res);
 	if(mysql_row[0]) s_max = atoi(mysql_row[0]);
 	else s_max = 0;
-	if(mysql_row[1]) t_max = atof(mysql_row[1]);
-	else t_max = 0;
+	t_max = atof(mysql_row[1]);
 	if(modul==4)
 		sprintf(query,"SELECT TIME_TO_SEC(time), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY T_1 asc LIMIT 1", time_from,  time_to);
 	else
@@ -391,7 +390,7 @@ void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char 
 	mysql_res = mysql_use_result(mysql_connection);
 	mysql_row = mysql_fetch_row(mysql_res);
 	mysql_free_result(mysql_res);
-	if(mysql_row[0]) s_max = atoi(mysql_row[0]);
+	if(mysql_row[0]) s_min = atoi(mysql_row[0]);
 	else s_min = 0;
 	if(mysql_row[1]) t_min = atof(mysql_row[1]);
 	else t_min = 0;
