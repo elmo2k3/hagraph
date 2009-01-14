@@ -374,10 +374,12 @@ void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char 
 	mysql_res = mysql_use_result(mysql_connection);
 	if(!(mysql_row = mysql_fetch_row(mysql_res)))
 		return;
-	mysql_free_result(mysql_res);
 	if(mysql_row[0]) s_max = atoi(mysql_row[0]);
 	else s_max = 0;
-	t_max = atof(mysql_row[1]);
+	if(mysql_row[1]) t_max = atof(mysql_row[1]);
+	else t_max = 0;
+	
+	mysql_free_result(mysql_res);
 	if(modul==4)
 		sprintf(query,"SELECT TIME_TO_SEC(time), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY T_1 asc LIMIT 1", time_from,  time_to);
 	else
@@ -389,11 +391,12 @@ void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char 
 	}
 	mysql_res = mysql_use_result(mysql_connection);
 	mysql_row = mysql_fetch_row(mysql_res);
-	mysql_free_result(mysql_res);
 	if(mysql_row[0]) s_min = atoi(mysql_row[0]);
 	else s_min = 0;
 	if(mysql_row[1]) t_min = atof(mysql_row[1]);
 	else t_min = 0;
+	
+	mysql_free_result(mysql_res);
 	//printf("%f %f \n",t_max,t_min);
 	if(*max == 0.0 && *min == 0.0)
 	{
