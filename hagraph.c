@@ -249,7 +249,7 @@ void drawYLegend(gdImagePtr im, float temp_max, float temp_min, int color)
 
 void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *time_from, const char *time_to, char timebase, int modul, int sensor, float temp_max, float temp_min)
 {
-	char query[255];
+	char query[1024];
 	MYSQL_RES *mysql_res;
 	MYSQL_ROW mysql_row;
 	MYSQL *mysql_helper_connection;
@@ -273,7 +273,17 @@ void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *tim
 	}
 	else
 	{
-		sprintf(query,"SELECT TIME_TO_SEC(CONVERT_TZ(date,'UTC','MET')), DAYOFWEEK(date), DAYOFMONTH(date), DAYOFYEAR(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND CONVERT_TZ(date,'UTC','MET')>'%s' AND date<'%s' ORDER BY date asc", modul, sensor, time_from, time_to);
+		sprintf(query,"SELECT TIME_TO_SEC(CONVERT_TZ(date,'UTC','MET')),\
+				DAYOFWEEK(CONVERT_TZ(date,'UTC','MET')),\
+				DAYOFMONTH(CONVERT_TZ(date,'UTC','MET')),\
+				DAYOFYEAR(CONVERT_TZ(date,'UTC','MET')),\
+				temperature\
+				FROM temperatures\
+				WHERE modul_id='%d'\
+				AND sensor_id='%d'\
+				AND CONVERT_TZ(date,'UTC','MET')>'%s'\
+				AND CONVERT_TZ(date,'UTC','MET')<'%s'\
+				ORDER BY date asc", modul, sensor, time_from, time_to);
 	}
 
 	if(mysql_query(mysql_connection,query))
