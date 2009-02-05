@@ -223,4 +223,54 @@ static int decideView(const char *time_from, const char *time_to)
 		return TB_YEAR;
 }
 	
+int transformDate(char *time_from, char *time_to, const char *date, int view)
+{
+	char c_date[255];
+	struct tm from, *to;
+	time_t s_from, s_to;
+	time_t seconds_to_add;
 
+	if(strlen(date)!=4 && strlen(date)!=7 && strlen(date) !=10)
+		return 0;
+	strcpy(c_date,date);
+	
+	if(strlen(c_date) == 4)
+		view = TB_YEAR;
+	else if(strlen(c_date) == 7)
+		view = TB_MONTH;
+
+	switch(view)
+	{
+		case TB_WEEK: 	from.tm_year = atoi(strtok(c_date,"-")) - 1900;
+				from.tm_mon = atoi(strtok(NULL,"-")) - 1;
+				from.tm_mday = atoi(strtok(NULL,"-"));
+				seconds_to_add = SECONDS_PER_WEEK; 
+				break;
+		case TB_DAY: 	from.tm_year = atoi(strtok(c_date,"-")) - 1900;
+				from.tm_mon = atoi(strtok(NULL,"-")) - 1;
+				from.tm_mday = atoi(strtok(NULL,"-"));
+				seconds_to_add = SECONDS_PER_DAY;
+				break;
+		case TB_MONTH:	from.tm_year = atoi(strtok(c_date,"-")) - 1900;
+				from.tm_mon = atoi(strtok(NULL,"-")) - 1;
+				from.tm_mday = 1;
+				seconds_to_add = SECONDS_PER_MONTH;
+				break;
+		case TB_YEAR:	from.tm_year = atoi(c_date) - 1900;
+				from.tm_mon = 0;
+				from.tm_mday = 1;
+				seconds_to_add = SECONDS_PER_YEAR;
+				break;
+	}
+	from.tm_hour = 0;
+	from.tm_min = 0;
+	from.tm_sec = 0;
+	s_from = mktime(&from);
+	s_to = s_from + seconds_to_add;
+	to = localtime(&s_to);
+
+	strftime(time_from, 11, "%Y-%m-%d", &from);
+	strftime(time_to, 11, "%Y-%m-%d", to);
+
+	return 1;
+}

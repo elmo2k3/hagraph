@@ -62,7 +62,7 @@ Module, Sensoren:
 int main(int argc, char *argv[])
 {
 	char file_output[255];
-	char time_from[255], time_to[255];
+	char time_from[255], time_to[255], date[255];
 	int modul_sensor[10][2];
 	int c;
 	int modul_count=0;
@@ -70,13 +70,14 @@ int main(int argc, char *argv[])
 	struct tm *today;
 	struct _graph_data graph;
 	int width, height;
+	int view;
 	
+	view = TB_DAY;
+	memset(time_to, 0, sizeof(time_to));
+
 	time(&rawtime);
 	today = gmtime(&rawtime);
-	strftime (time_from,255,"%Y-%m-%d",today);
-	rawtime += SECONDS_PER_DAY; // jetzt ist morgen heute
-	today = gmtime(&rawtime);
-	strftime (time_to,255,"%Y-%m-%d",today);
+	strftime (date,255,"%Y-%m-%d",today);
 	
 	strcpy(file_output,"test.png");
 	
@@ -89,13 +90,11 @@ int main(int argc, char *argv[])
 	width = 800;
 	height = 400;
 
-	printf("\nArbeite .........\n");	
-	
 	while ((c = getopt (argc, argv, "f:t:x:y:g:h:i:j:k:l:m:n:o:p:q:r:z:")) != -1)
 	{
 		switch(c)
 		{
-			case 'f': 	strcpy(time_from,optarg); break;
+			case 'f': 	strcpy(date,optarg); break;
 			case 't': 	strcpy(time_to,optarg); break;
 			case 'x': 	width = atoi(optarg); break;
 			case 'y': 	height = atoi(optarg); break;
@@ -116,6 +115,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if(time_to[0] == 'm')
+		view = TB_MONTH;
+	else if(time_to[0] == 'y')
+		view = TB_YEAR;
+	
+	if(!transformDate(time_from, time_to, date, view))
+	{
+		printf("Parse error for date: %s\n",date);
+		return EXIT_FAILURE;
+	}
+
 	initGraph(&graph, time_from, time_to);
 	
 	for(c=0;c<modul_count;c++)
@@ -126,7 +136,6 @@ int main(int argc, char *argv[])
 	drawGraphPng(file_output, &graph, width, height);
 	freeGraph(&graph);
 
-	printf(" Fertig!\n\n");
 	return 0;
 }
 
