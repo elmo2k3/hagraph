@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	{
 		ptm = localtime(&rawtime);
 		/* draw the year */
-		strftime(filename,20, "%Y_bochum.png",ptm);
+		strftime(filename,30, "%Y_bochum.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 0 -i 3 -j 1 -f %d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, filename);
 		if(!fileExists(filename))
 		{
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the months */
-		strftime(filename,20, "%Y-%m_bochum.png",ptm);
+		strftime(filename,30, "%Y-%m_bochum.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 0 -i 3 -j 1 -f %d-%02d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, filename);
 		if(!fileExists(filename))
 		{
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the days */
-		strftime(filename,20, "%Y-%m-%d_bochum.png",ptm);
+		strftime(filename,30, "%Y-%m-%d_bochum.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 0 -i 3 -j 1 -f %d-%02d-%02d -z %s",
 			HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, filename);
 		if(!fileExists(filename))
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the year */
-		strftime(filename,20, "%Y_oe.png",ptm);
+		strftime(filename,30, "%Y_oe.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 2 -h 0 -i 2 -j 1 -k 4 -l 0 -m 4 -n 1 -f %d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, filename);
 		if(!fileExists(filename))
 		{
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the months */
-		strftime(filename,20, "%Y-%m_oe.png",ptm);
+		strftime(filename,30, "%Y-%m_oe.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 2 -h 0 -i 2 -j 1 -k 4 -l 0 -m 4 -n 1 -f %d-%02d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, filename);
 		if(!fileExists(filename))
 		{
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the days */
-		strftime(filename,20, "%Y-%m-%d_oe.png",ptm);
+		strftime(filename,30, "%Y-%m-%d_oe.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 2 -h 0 -i 2 -j 1 -k 4 -l 0 -m 4 -n 1 -f %d-%02d-%02d -z %s",
 			HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, filename);
 		if(!fileExists(filename))
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the year */
-		strftime(filename,20, "%Y_out.png",ptm);
+		strftime(filename,30, "%Y_out.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 1 -i 4 -j 0 -f %d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, filename);
 		if(!fileExists(filename))
 		{
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the months */
-		strftime(filename,20, "%Y-%m_out.png",ptm);
+		strftime(filename,30, "%Y-%m_out.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 1 -i 4 -j 0 -f %d-%02d -z %s",HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, filename);
 		if(!fileExists(filename))
 		{
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 			system(execute_string);
 		}
 		/* draw the days */
-		strftime(filename,20, "%Y-%m-%d_out.png",ptm);
+		strftime(filename,30, "%Y-%m-%d_out.png",ptm);
 		sprintf(execute_string,"%s -x %d -y %d -g 3 -h 0 -i 4 -j 0 -f %d-%02d-%02d -z %s",
 			HAGRAPH, WIDTH, HEIGHT, ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, filename);
 		if(!fileExists(filename))
