@@ -56,34 +56,20 @@ Module, Sensoren:
 #include <math.h>
 #include <unistd.h>
 
-#include "hagraph.h"
-
-#define MYSQL_SERVER    "192.168.2.1"
-#define MYSQL_USER      "home_automation"
-#define MYSQL_PASS      "rfm12"
-#define MYSQL_DB        "home_automation"
-#define MYSQL_DB_WS2000	"wetterstation"
-
-
-int IMG_WIDTH=IMG_WIDTH_STD, IMG_HEIGHT=IMG_HEIGHT_STD;
-
+#include "libhagraph.h"
+#include "data.h"
 
 int main(int argc, char *argv[])
 {
-	gdImagePtr im;
-	FILE *pngout;
-	int white, black, red, green, blue, purple, orange;
 	char file_output[255];
-	int sec_max, sec_min;
 	char time_from[255], time_to[255];
-	float temp_max = 0.0, temp_min = 0.0;
 	int modul_sensor[10][2];
 	int c;
-	int view;
 	int modul_count=0;
 	time_t rawtime;
 	struct tm *today;
-	
+	struct _graph_data graph;
+	int width, height;
 	
 	time(&rawtime);
 	today = gmtime(&rawtime);
@@ -100,6 +86,9 @@ int main(int argc, char *argv[])
 	modul_sensor[0][1]=1;
 	modul_count=1;
 
+	width = 800;
+	height = 400;
+
 	printf("\nArbeite .........\n");	
 	
 	while ((c = getopt (argc, argv, "f:t:x:y:g:h:i:j:k:l:m:n:o:p:q:r:z:")) != -1)
@@ -108,8 +97,8 @@ int main(int argc, char *argv[])
 		{
 			case 'f': 	strcpy(time_from,optarg); break;
 			case 't': 	strcpy(time_to,optarg); break;
-			case 'x': 	IMG_WIDTH = atoi(optarg); break;
-			case 'y': 	IMG_HEIGHT = atoi(optarg); break;
+			case 'x': 	width = atoi(optarg); break;
+			case 'y': 	height = atoi(optarg); break;
 			case 'g': 	modul_sensor[0][0] = atoi(optarg); modul_count=0 ;break;
 			case 'h': 	modul_sensor[0][1] = atoi(optarg); modul_count++; break;
 			case 'i': 	modul_sensor[1][0] = atoi(optarg); break;
@@ -126,330 +115,18 @@ int main(int argc, char *argv[])
 			case 'z': 	strcpy(file_output,optarg); break;
 		}
 	}
-	view = decideView(time_from, time_to);
 
-	MYSQL *mysql_connection;
-
-	mysql_connection = mysql_init(NULL);
-	if (!mysql_real_connect(mysql_connection, MYSQL_SERVER, MYSQL_USER, MYSQL_PASS, MYSQL_DB, 0, NULL, 0))
-	{
-		fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-		exit(0);
-	}
-	mysql_connection->reconnect=1;
-
-	im = gdImageCreate(IMG_WIDTH, IMG_HEIGHT);
-	white = gdImageColorAllocate(im,255,255,255); // Hintergrundfarbe
-	black = gdImageColorAllocate(im,0,0,0);
-	red = gdImageColorAllocate(im,255,0,0);
-	green = gdImageColorAllocate(im,0,255,0);
-	blue = gdImageColorAllocate(im,0,0,255);
-	purple = gdImageColorAllocate(im,255,0,255);
-	orange = gdImageColorAllocate(im,255,255,0);
-	
-	int colors[]={red,blue,green,purple,orange};
+	initGraph(&graph, time_from, time_to);
 	
 	for(c=0;c<modul_count;c++)
 	{
-		getMaxMinValues(mysql_connection, time_from, time_to, &temp_max, &sec_max, &temp_min,  &sec_min, modul_sensor[c][0],modul_sensor[c][1]);	
+		addGraphData(&graph, modul_sensor[c][0], modul_sensor[c][1]);
 	}
-	temp_max = ceil(temp_max/10)*10;
-	temp_min = floor(temp_min/10)*10;
 
-	for(c=0;c<modul_count;c++)
-	{
-		addGraph(im, mysql_connection, colors[c], time_from, time_to, view, modul_sensor[c][0], modul_sensor[c][1], temp_max, temp_min);
-	}
-	
-	drawXLegend(im, view, black, (unsigned char*)time_from);
-	drawYLegend(im, temp_max, temp_min, black);
-	pngout = fopen(file_output, "wb");
-	gdImagePng(im, pngout);
-	fclose(pngout);
-	gdImageDestroy(im);
-	mysql_close(mysql_connection);
+	drawGraphPng(file_output, &graph, width, height);
+	freeGraph(&graph);
+
 	printf(" Fertig!\n\n");
 	return 0;
 }
 
-/* 
- * X-Achse zeichnen
- * Möglichkeiten für timebase: TB_DAY, TB_WEEK, TB_MONTH, TB_YEAR
- * 
- */
-void drawXLegend(gdImagePtr im, char timebase, int color, unsigned char *title)
-{
-	int width;
-	int i,p;
-	char time[200];
-	
-	gdImageSetThickness(im, 2);
-	gdImageLine(im, X1_SKIP-5, IMG_HEIGHT-Y1_SKIP, IMG_WIDTH-X2_SKIP+5, IMG_HEIGHT-Y1_SKIP, color);
-
-	gdImageSetThickness(im, 1);
-	
-	switch(timebase)
-	{
-		case TB_DAY: 	if(IMG_WIDTH<2000)
-				{
-					width = WIDTH_FOR_ONE_HOUR*2;i=0,p=13;
-				}
-				else
-				{
-					width = WIDTH_FOR_ONE_HOUR; i=0; p=25;
-				}
-				gdImageString(im,gdFontGetLarge(), IMG_WIDTH/2, 5, title,color); 
-				break;
-		case TB_WEEK: 	width = WIDTH_FOR_ONE_DAY_IN_WEEK; i=0; p=8; break;
-		case TB_MONTH: 	width = WIDTH_FOR_ONE_DAY_IN_MONTH; i=0; p=32; break;
-		case TB_YEAR: 	width = WIDTH_FOR_ONE_DAY_IN_YEAR; i=0; p=367; break;
-	}
-		
-	for(;i<p;i++)
-	{
-#ifdef DRAW_VERTICAL_GRID
-		gdImageDashedLine(im, i*width+X1_SKIP, Y2_SKIP, i*width+X1_SKIP, IMG_HEIGHT-Y1_SKIP+TICK_OFFSET, color);
-#endif
-		gdImageLine(im, i*width+X1_SKIP,IMG_HEIGHT-Y1_SKIP, i*width+X1_SKIP, IMG_HEIGHT -Y1_SKIP, color);
-		switch(timebase)
-		{
-			case TB_DAY: 	if(IMG_WIDTH<2000)
-							sprintf(time,"%02d:00:00",i*2); 
-					else
-							sprintf(time,"%02d:00:00",i);
-							break;
-			case TB_WEEK: 	if(i<7) sprintf(time,"%d",i+1); else strcpy(time,"\0");  break;
-			case TB_MONTH: 	if(i<31) sprintf(time,"%d",i+1); else strcpy(time,"\0"); break;
-			case TB_YEAR: 	sprintf(time,"%d",i+1); break;
-		}
-		gdImageString(im,gdFontGetSmall(), i*width+X1_SKIP-X1_TO_TEXT2,IMG_HEIGHT-Y1_TO_TEXT, time,color);
-	}
-	
-}
-
-void drawYLegend(gdImagePtr im, float temp_max, float temp_min, int color)
-{
-	float range = temp_max - temp_min;
-	int one_degree_height = (IMG_HEIGHT-Y1_SKIP-Y2_SKIP)/10;
-	int i;
-	char tstring[10];
-	
-	for(i=0;i<10;i++)
-	{
-#ifdef DRAW_HORIZONTAL_GRID
-		gdImageDashedLine(im,X1_SKIP-TICK_OFFSET,one_degree_height*i+Y2_SKIP ,IMG_WIDTH-X2_SKIP,one_degree_height*i+Y2_SKIP ,color);
-#endif
-		gdImageDashedLine(im,X1_SKIP-TICK_OFFSET,one_degree_height*i+Y2_SKIP ,X1_SKIP+TICK_OFFSET,one_degree_height*i+Y2_SKIP ,color);
-
-		
-		sprintf(tstring,"%d",(int)(temp_max-(range/10)*i));
-		gdImageString(im,gdFontGetSmall(), X1_SKIP-X1_TO_TEXT,one_degree_height*i+Y2_SKIP, tstring,color);
-	}
-}
-
-void addGraph(gdImagePtr im, MYSQL *mysql_connection, int color, const char *time_from, const char *time_to, char timebase, int modul, int sensor, float temp_max, float temp_min)
-{
-	char query[1024];
-	MYSQL_RES *mysql_res;
-	MYSQL_ROW mysql_row;
-	MYSQL *mysql_helper_connection;
-	
-	float seconds[2];		// vorgänger und aktueller wert
-	int day_of_week, day_of_month, day_of_year;
-	float temperature[2];
-	float x_div;
-	int x1,y1,x2,y2;
-	
-	mysql_helper_connection = mysql_connection;
-	if(modul==4)
-	{
-		mysql_connection = mysql_init(NULL);
-		if (!mysql_real_connect(mysql_connection, MYSQL_SERVER, MYSQL_USER, MYSQL_PASS, MYSQL_DB_WS2000, 0, NULL, 0))
-		{
-			fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-			exit(0);
-		}
-		sprintf(query,"SELECT TIME_TO_SEC(time), DAYOFWEEK(date), DAYOFMONTH(date), DAYOFYEAR(date), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY date,time asc",time_from, time_to);
-	}
-	else
-	{
-		sprintf(query,"SELECT TIME_TO_SEC(CONVERT_TZ(date,'UTC','MET')),\
-				DAYOFWEEK(CONVERT_TZ(date,'UTC','MET')),\
-				DAYOFMONTH(CONVERT_TZ(date,'UTC','MET')),\
-				DAYOFYEAR(CONVERT_TZ(date,'UTC','MET')),\
-				temperature\
-				FROM temperatures\
-				WHERE modul_id='%d'\
-				AND sensor_id='%d'\
-				AND CONVERT_TZ(date,'UTC','MET')>'%s'\
-				AND CONVERT_TZ(date,'UTC','MET')<'%s'\
-				ORDER BY date asc", modul, sensor, time_from, time_to);
-	}
-
-	if(mysql_query(mysql_connection,query))
-	{
-		fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-		exit(0);
-	}
-	mysql_res = mysql_use_result(mysql_connection);
-	int i=0;
-	while((mysql_row = mysql_fetch_row(mysql_res)))
-	{
-		
-		if(!mysql_row)
-		{	
-			fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-			exit(0);
-		}
-		
-		if(mysql_row[0]) seconds[1]	= atoi(mysql_row[0]);
-		else seconds[1]	= 0;
-		
-		if(strcmp(mysql_row[1],"0.0")) temperature[1] = atof(mysql_row[4]);
-		else temperature[1] = 0;
-		
-		day_of_week = atoi(mysql_row[1]) -2;	// MYSQL gibt Sonntag = 1... zurück
-		if(day_of_week == -1) day_of_week = 6;		// jetzt Montag=1, Sonntag=7
-		day_of_month = atoi(mysql_row[2]) -1;
-		day_of_year = atoi(mysql_row[3]) -1;
-	
-		gdImageSetThickness(im, 2);
-		switch(timebase)
-		{
-			case TB_DAY: 	x_div = SECONDS_PER_DAY; break;
-			case TB_WEEK: 	x_div = SECONDS_PER_WEEK;
-							seconds[1] += SECONDS_PER_DAY*day_of_week;
-							break;
-			case TB_MONTH: 	x_div = SECONDS_PER_MONTH;
-							seconds[1] += SECONDS_PER_DAY*day_of_month;
-							break; 
-			case TB_YEAR: 	x_div = SECONDS_PER_YEAR;
-							seconds[1] += SECONDS_PER_DAY*day_of_year;
-							break; 
-		}
-		if(i) // erst ab dem zweiten Durchlauf
-		{
-			x1 = seconds[0]/x_div*(IMG_WIDTH-X1_SKIP-X2_SKIP)+X1_SKIP;
-			x2 = seconds[1]/x_div*(IMG_WIDTH-X1_SKIP-X2_SKIP)+X1_SKIP;
-			y1 = transformY(temperature[0],temp_max,temp_min);
-			y2 = transformY(temperature[1],temp_max,temp_min);
-
-			gdImageLine(im,x1,y1,x2,y2,color);
-		}
-		i++;
-		temperature[0]=temperature[1];
-		seconds[0]=seconds[1];
-	}
-	if(modul==4)
-		mysql_close(mysql_connection);
-	mysql_connection = mysql_helper_connection;
-}
-
-/* 
- * Gives back the absolute position for the temperature in the picture
- */
-int transformY(float temperature, float max, float min)
-{
-	const float range = max - min;
-	return (1-((temperature-min)/range))*(IMG_HEIGHT-80)+40;
-}
-
-void getMaxMinValues(MYSQL *mysql_connection, const char *time_from, const char *time_to, float *max, int *sec_max, float *min, int *sec_min, int modul, int sensor)
-{
-	MYSQL *mysql_helper_connection;
-	MYSQL_RES *mysql_res;
-	MYSQL_ROW mysql_row;
-	float t_max, s_max, t_min, s_min;
-	char query[255];
-	
-	mysql_helper_connection = mysql_connection;
-	if(modul==4)
-	{
-		mysql_connection = mysql_init(NULL);
-		if (!mysql_real_connect(mysql_connection, MYSQL_SERVER, MYSQL_USER, MYSQL_PASS, MYSQL_DB_WS2000, 0, NULL, 0))
-		{
-			fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-			exit(0);
-		}
-		sprintf(query,"SELECT TIME_TO_SEC(time), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY T_1 desc LIMIT 1", time_from, time_to);
-	}
-	else
-		sprintf(query,"SELECT TIME_TO_SEC(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND date>'%s' AND date<'%s' AND temperature!='85.0' ORDER BY temperature desc LIMIT 1", modul, sensor, time_from, time_to);
-		
-	if(mysql_query(mysql_connection,query))
-	{
-		fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-		exit(0);
-	}
-	mysql_res = mysql_use_result(mysql_connection);
-	if(!(mysql_row = mysql_fetch_row(mysql_res)))
-		return;
-	if(mysql_row[0]) s_max = atoi(mysql_row[0]);
-	else s_max = 0;
-	if(mysql_row[1]) t_max = atof(mysql_row[1]);
-	else t_max = 0;
-	
-	mysql_free_result(mysql_res);
-	if(modul==4)
-		sprintf(query,"SELECT TIME_TO_SEC(time), T_1 FROM sensor_1_8 WHERE date>='%s' AND date<'%s' AND ok_1='0' ORDER BY T_1 asc LIMIT 1", time_from,  time_to);
-	else
-		sprintf(query,"SELECT TIME_TO_SEC(date), temperature FROM temperatures WHERE modul_id='%d' AND sensor_id='%d' AND date>'%s' AND date<'%s' ORDER BY temperature asc LIMIT 1", modul, sensor, time_from, time_to);
-	if(mysql_query(mysql_connection,query))
-	{
-		fprintf(stderr, "%s\n", mysql_error(mysql_connection));
-		exit(0);
-	}
-	mysql_res = mysql_use_result(mysql_connection);
-	mysql_row = mysql_fetch_row(mysql_res);
-	if(mysql_row[0]) s_min = atoi(mysql_row[0]);
-	else s_min = 0;
-	if(mysql_row[1]) t_min = atof(mysql_row[1]);
-	else t_min = 0;
-	
-	mysql_free_result(mysql_res);
-	//printf("%f %f \n",t_max,t_min);
-	if(*max == 0.0 && *min == 0.0)
-	{
-		*max = t_max;
-		*min = t_min;
-	}
-	else
-	{
-		if(t_max > *max) *max = t_max;
-		if(t_min < *min) *min = t_min;
-	}
-	if(modul==4)
-		mysql_close(mysql_connection);
-	mysql_connection = mysql_helper_connection; // wieder herstellen
-}
-int decideView(char *time_from, char *time_to)
-{
-	char c_from[255], c_to[255];
-	struct tm from, to;
-	
-	strcpy(c_from,time_from);
-	strcpy(c_to,time_to);
-	
-	from.tm_year = atoi(strtok(c_from,"-")) -1900;
-	from.tm_mon = atoi(strtok(NULL,"-")) - 1;
-	from.tm_mday = atoi(strtok(NULL,"-"));
-	from.tm_hour = 0;
-	from.tm_min = 0;
-	from.tm_sec = 0;
-	
-	to.tm_year = atoi(strtok(c_to,"-")) -1900;
-	to.tm_mon = atoi(strtok(NULL,"-")) - 1;
-	to.tm_mday = atoi(strtok(NULL,"-"));
-	to.tm_hour = 0;
-	to.tm_min = 0;
-	to.tm_sec = 0;
-	
-	if(mktime(&to)-mktime(&from) <= SECONDS_PER_DAY)
-		return TB_DAY;
-	else if(mktime(&to)-mktime(&from) <= SECONDS_PER_WEEK)
-		return TB_WEEK;
-	else if(mktime(&to)-mktime(&from) <= SECONDS_PER_MONTH)
-		return TB_MONTH;
-	else
-		return TB_YEAR;
-}
