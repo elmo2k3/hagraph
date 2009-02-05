@@ -256,7 +256,9 @@ int transformDate(char *time_from, char *time_to, const char *date, int view)
 				from.tm_mon = atoi(strtok(NULL,"-")) - 1;
 				from.tm_mday = 1;
 				if(from.tm_mon == 1 && __isleap(from.tm_year+1900))
+				{
 					seconds_to_add = SECONDS_PER_DAY * 29;
+				}
 				else
 					seconds_to_add = SECONDS_PER_DAY * days_in_month[from.tm_mon];
 				break;
@@ -265,7 +267,9 @@ int transformDate(char *time_from, char *time_to, const char *date, int view)
 				from.tm_mday = 1;
 				seconds_to_add = SECONDS_PER_YEAR;
 				if(__isleap(from.tm_year+1900))
+				{
 					seconds_to_add += SECONDS_PER_DAY;
+				}
 				break;
 	}
 	from.tm_hour = 0;
