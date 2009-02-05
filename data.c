@@ -17,6 +17,7 @@
 #define MYSQL_DB_WS2000	"wetterstation"
 
 static int decideView(const char *time_from, const char *time_to);
+static int days_in_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 void initGraph(struct _graph_data *graph, const char *time_from, const char *time_to)
 {
@@ -254,7 +255,10 @@ int transformDate(char *time_from, char *time_to, const char *date, int view)
 		case TB_MONTH:	from.tm_year = atoi(strtok(c_date,"-")) - 1900;
 				from.tm_mon = atoi(strtok(NULL,"-")) - 1;
 				from.tm_mday = 1;
-				seconds_to_add = SECONDS_PER_MONTH;
+				if(from.tm_mon == 1 && __isleap(from.tm_year+1900))
+					seconds_to_add = SECONDS_PER_DAY * 29;
+				else
+					seconds_to_add = SECONDS_PER_DAY * days_in_month[from.tm_mon];
 				break;
 		case TB_YEAR:	from.tm_year = atoi(c_date) - 1900;
 				from.tm_mon = 0;
