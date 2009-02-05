@@ -29,7 +29,8 @@
 #define WIDTH_FOR_ONE_HOUR ((double)(width-X1_SKIP-X2_SKIP)/24)
 #define WIDTH_FOR_ONE_DAY_IN_WEEK ((double)(width-X1_SKIP-X2_SKIP)/7)
 #define WIDTH_FOR_ONE_DAY_IN_MONTH ((double)(width-X1_SKIP-X2_SKIP)/31)
-#define WIDTH_FOR_ONE_DAY_IN_YEAR ((double)(width-X1_SKIP-X2_SKIP)/366)
+#define WIDTH_FOR_ONE_DAY_IN_YEAR ((double)(width-X1_SKIP-X2_SKIP)/365)
+#define WIDTH_FOR_ONE_MONTH_IN_YEAR ((double)(width-X1_SKIP-X2_SKIP)/12)
 
 static int colors[6][3] = {{255,0,0},
 			{0,255,0},
@@ -135,7 +136,8 @@ static void drawXLegend(cairo_t *cr, char timebase, const char *title, int width
 {
 	int i,p;
 	char time[200];
-	
+	double space;
+
 	cairo_set_line_width(cr, 2);
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_move_to(cr, X1_SKIP-5, height-Y1_SKIP);
@@ -146,21 +148,27 @@ static void drawXLegend(cairo_t *cr, char timebase, const char *title, int width
 	{
 		case TB_DAY: 	if(width<2000)
 				{
-					width = (double)(WIDTH_FOR_ONE_HOUR*2);i=0,p=13;
+					space = (double)(WIDTH_FOR_ONE_HOUR*2);i=0,p=13;
 				}
 				else
 				{
-					width = (double)(WIDTH_FOR_ONE_HOUR); i=0; p=25;
+					space = (double)(WIDTH_FOR_ONE_HOUR); i=0; p=25;
 				}
-				cairo_move_to(cr, width/2,10);
+				cairo_move_to(cr, space/2,10);
 				cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 				cairo_set_font_size(cr, 9.0);
 				cairo_show_text(cr, title);
 	//			gdImageString(im,gdFontGetLarge(), width/2, 5, title,color); 
 				break;
-		case TB_WEEK: 	width = WIDTH_FOR_ONE_DAY_IN_WEEK; i=0; p=8; break;
-		case TB_MONTH: 	width = WIDTH_FOR_ONE_DAY_IN_MONTH; i=0; p=32; break;
-		case TB_YEAR: 	width = WIDTH_FOR_ONE_DAY_IN_YEAR; i=0; p=367; break;
+		case TB_WEEK: 	space = WIDTH_FOR_ONE_DAY_IN_WEEK; i=0; p=8; break;
+		case TB_MONTH: 	space = WIDTH_FOR_ONE_DAY_IN_MONTH; i=0; p=32; break;
+		case TB_YEAR: 	if(width<9999)
+				{
+					space = WIDTH_FOR_ONE_MONTH_IN_YEAR; i=0; p=13;
+				}
+				else
+					space = WIDTH_FOR_ONE_DAY_IN_YEAR; i=0; p=366; 
+				break;
 	}
 		
 	for(;i<p;i++)
@@ -171,27 +179,42 @@ static void drawXLegend(cairo_t *cr, char timebase, const char *title, int width
 //		gdImageDashedLine(im, i*width+X1_SKIP, Y2_SKIP, i*width+X1_SKIP, height-Y1_SKIP+TICK_OFFSET, color);
 #endif
 		cairo_set_line_width(cr, 1);
-		cairo_move_to(cr, (double)i*width+X1_SKIP, Y2_SKIP);
-		cairo_line_to(cr, (double)i*width+X1_SKIP, height-Y1_SKIP+TICK_OFFSET);	
+		cairo_move_to(cr, (double)i*space+X1_SKIP, Y2_SKIP);
+		cairo_line_to(cr, (double)i*space+X1_SKIP, height-Y1_SKIP+TICK_OFFSET);	
 		cairo_stroke(cr);
 		cairo_set_line_width(cr, 1);
 //		gdImageLine(im, i*width+X1_SKIP,height-Y1_SKIP, i*width+X1_SKIP, height -Y1_SKIP, color);
 		switch(timebase)
 		{
-			case TB_DAY: 	if(width<2000)
+			case TB_DAY: 	if(space<2000)
 							sprintf(time,"%02d:00:00",i*2); 
 					else
 							sprintf(time,"%02d:00:00",i);
 							break;
 			case TB_WEEK: 	if(i<7) sprintf(time,"%d",i+1); else strcpy(time,"\0");  break;
 			case TB_MONTH: 	if(i<31) sprintf(time,"%d",i+1); else strcpy(time,"\0"); break;
-			case TB_YEAR: 	sprintf(time,"%d",i+1); break;
+			case TB_YEAR: 	if(space<9999)
+					{
+						if(i<12)
+							sprintf(time,"%d",i+1);
+						else
+							strcpy(time,"\0");
+					}
+					else
+					{
+						if(i<365)
+							sprintf(time,"%d",i+1);
+						else
+							strcpy(time,"\0");
+					}
+					break;
+
 		}
-		cairo_move_to(cr, i*width+X1_SKIP-X1_TO_TEXT2, height - Y1_TO_TEXT);
+//		gdImageString(im,gdFontGetSmall(), i*width+X1_SKIP-X1_TO_TEXT2,height-Y1_TO_TEXT, time,color);
+		cairo_move_to(cr, i*space+X1_SKIP-X1_TO_TEXT2, height - Y1_TO_TEXT);
 		cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 		cairo_set_font_size(cr, 9.0);
 		cairo_show_text(cr, time);
-//		gdImageString(im,gdFontGetSmall(), i*width+X1_SKIP-X1_TO_TEXT2,height-Y1_TO_TEXT, time,color);
 	}
 	
 }
