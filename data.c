@@ -264,6 +264,8 @@ int transformDate(char *time_from, char *time_to, const char *date, int view)
 				from.tm_mon = 0;
 				from.tm_mday = 1;
 				seconds_to_add = SECONDS_PER_YEAR;
+				if(__isleap(from.tm_year+1900))
+					seconds_to_add += SECONDS_PER_DAY;
 				break;
 	}
 	from.tm_hour = 0;
