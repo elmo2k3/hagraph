@@ -83,7 +83,8 @@ void drawGraphPng(char *filename, struct _graph_data *graph, int width, int heig
 static void drawGraph(cairo_t *cr, struct _graph_data *graph, int width, int height)
 {
 	int c,i;
-	char text[50];
+	char text[100];
+	char min_max_avg[40];
 	int text_x, text_y;
 
 	for(c=0;c < graph->num_graphs;c++)
@@ -109,25 +110,30 @@ static void drawGraph(cairo_t *cr, struct _graph_data *graph, int width, int hei
 		switch(graph->graphs[c].modul)
 		{
 			case 2: if(graph->graphs[c].sensor == 0)
-					strcpy(text,"O.-E. Vorlauf");
+					strcpy(text,"O.-E. Vorlauf     ");
 				else if(graph->graphs[c].sensor == 1)
-					strcpy(text,"O.-E. Rücklauf");
+					strcpy(text,"O.-E. Rücklauf    ");
 				break;
 			case 3: if(graph->graphs[c].sensor == 0)
-					strcpy(text,"Bochum Wohnzimmer");
+					strcpy(text,"Bochum Wohnzimmer ");
 				else if(graph->graphs[c].sensor == 1)
-					strcpy(text,"Bochum Aussen");
+					strcpy(text,"Bochum Aussen    ");
 				break;
 			case 4: if(graph->graphs[c].sensor == 0)
-					strcpy(text,"O.-E. Aussen");
+					strcpy(text,"O.-E. Aussen    ");
 				else if(graph->graphs[c].sensor == 1)
-					strcpy(text,"O.-E. Wohnzimmer");
+					strcpy(text,"O.-E. Wohnzimmer  ");
 				break;
 		}
+		sprintf(min_max_avg," Max: %2.02f Min: %2.02f Avg: %2.02f",
+				graph->graphs[c].max,
+				graph->graphs[c].min,
+				graph->graphs[c].average);
+		strcat(text, min_max_avg);
 
 		if(c%2) // 1 .. 3 .. 5 ..
 		{
-			text_x = X1_SKIP + 300;
+			text_x = X1_SKIP + 400;
 			text_y = height - Y1_TO_LEGEND + (c-1)*10;
 		}
 		else // 0 .. 2 .. 4 ..

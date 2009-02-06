@@ -57,6 +57,7 @@ void addGraphData(struct _graph_data *graph, int modul, int sensor)
 	int day_of_week, day_of_month, day_of_year;
 	double max = -999.9;
 	double min = 999.9;
+	long double average = 0.0;
 	
 	/* allocate new space for _one_graph_data */
 	graph->graphs = realloc(graph->graphs, sizeof(struct _one_graph_data)*(graph->num_graphs+1));
@@ -114,6 +115,7 @@ void addGraphData(struct _graph_data *graph, int modul, int sensor)
 			temperature*1000 \
 			FROM temperatures WHERE modul_id='%d'\
 			AND sensor_id='%d' \
+			AND temperature!=85.0 \
 			AND CONVERT_TZ(date,'UTC','MET')>'%s'\
 			AND CONVERT_TZ(date,'UTC','MET')<'%s'\
 			ORDER BY date asc", modul, sensor, graph->time_from, graph->time_to);
@@ -167,7 +169,7 @@ void addGraphData(struct _graph_data *graph, int modul, int sensor)
 			
 		helper[i].x = seconds;
 		helper[i].y = temperature;
-
+		average += temperature;
 		if(temperature > max)
 			max = temperature;
 		if(temperature < min)
@@ -184,9 +186,10 @@ void addGraphData(struct _graph_data *graph, int modul, int sensor)
 		graph->min = floor(min/10.0)*10;
 	if(max > graph->max)
 		graph->max = ceil(max/10.0)*10; 
-	//graph->graphs[graph->num_graphs].min = min;
-	//graph->graphs[graph->num_graphs].max = max;
 	
+	graph->graphs[graph->num_graphs].min = min;
+	graph->graphs[graph->num_graphs].max = max;
+	graph->graphs[graph->num_graphs].average = average/num_points;
 	graph->num_graphs++;
 
 	return;

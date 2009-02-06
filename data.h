@@ -25,6 +25,7 @@ struct _one_graph_data
 	int sensor;
 	double min;
 	double max;
+	double average;
 	int num_points;
 	struct _graph_point *points;
 };
