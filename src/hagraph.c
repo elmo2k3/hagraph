@@ -56,8 +56,14 @@ Module, Sensoren:
 #include <math.h>
 #include <unistd.h>
 
-#include "libhagraph.h"
-#include "data.h"
+#include <libhagraph/libhagraph.h>
+
+#define MYSQL_HOST "bjoern-b.de"
+#define MYSQL_USER "weather_read"
+#define MYSQL_PASS "QPiEVtJ/6tLxQ"
+#define MYSQL_PORT 3306
+#define MYSQL_DATABASE "home_automation"
+#define MYSQL_DATABASE_WS2000 "wetterstation"
 
 int main(int argc, char *argv[])
 {
@@ -130,7 +136,12 @@ int main(int argc, char *argv[])
 	
 	for(c=0;c<modul_count;c++)
 	{
-		addGraphData(&graph, modul_sensor[c][0], modul_sensor[c][1]);
+		addGraphData(&graph, modul_sensor[c][0], modul_sensor[c][1],
+			MYSQL_HOST,
+			MYSQL_USER,
+			MYSQL_PASS,
+			MYSQL_DATABASE,
+			MYSQL_DATABASE_WS2000);
 	}
 
 	drawGraphPng(file_output, &graph, width, height);
