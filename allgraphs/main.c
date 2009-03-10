@@ -43,11 +43,25 @@ int main(int argc, char *argv[])
 	ptm = localtime(&rawtime_today);
 
 	/* delete files that affect today */
-	strftime(filename,20, "%Y.png",ptm);
+	strftime(filename,20, "%Y_bochum.png",ptm);
 	unlink(filename);
-	strftime(filename,20, "%Y-%m.png",ptm);
+	strftime(filename,20, "%Y-%m_bochum.png",ptm);
 	unlink(filename);
-	strftime(filename,20, "%Y-%m-%d.png",ptm);
+	strftime(filename,20, "%Y-%m-%d_bochum.png",ptm);
+	unlink(filename);
+	/* delete files that affect today */
+	strftime(filename,20, "%Y_oe.png",ptm);
+	unlink(filename);
+	strftime(filename,20, "%Y-%m_oe.png",ptm);
+	unlink(filename);
+	strftime(filename,20, "%Y-%m-%d_oe.png",ptm);
+	unlink(filename);
+	/* delete files that affect today */
+	strftime(filename,20, "%Y_out.png",ptm);
+	unlink(filename);
+	strftime(filename,20, "%Y-%m_out.png",ptm);
+	unlink(filename);
+	strftime(filename,20, "%Y-%m-%d_out.png",ptm);
 	unlink(filename);
 
 	while(rawtime < rawtime_today)
@@ -76,7 +90,7 @@ int main(int argc, char *argv[])
 		if(!fileExists(filename))
 		{
 			printf("creating %s\n",filename);
-			system(execute_string);
+		//	system(execute_string);
 		}
 		/* draw the year */
 		strftime(filename,30, "%Y_oe.png",ptm);
@@ -101,7 +115,7 @@ int main(int argc, char *argv[])
 		if(!fileExists(filename))
 		{
 			printf("creating %s\n",filename);
-			system(execute_string);
+		//	system(execute_string);
 		}
 		/* draw the year */
 		strftime(filename,30, "%Y_out.png",ptm);
@@ -126,7 +140,7 @@ int main(int argc, char *argv[])
 		if(!fileExists(filename))
 		{
 			printf("creating %s\n",filename);
-			system(execute_string);
+		//	system(execute_string);
 		}
 
 		rawtime += SECONDS_PER_DAY;
