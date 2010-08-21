@@ -60,9 +60,6 @@ Module, Sensoren:
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <gd.h>
-#include <gdfontl.h>
-#include <gdfonts.h>
 #include <mysql/mysql.h>
 #include <string.h>
 #include <time.h>
@@ -139,11 +136,7 @@ int main(int argc, char *argv[])
 	else if(time_to[0] == 'y')
 		view = TB_YEAR;
 	
-	if(!transformDate(time_from, time_to, date, view))
-	{
-		printf("Parse error for date: %s\n",date);
-		return EXIT_FAILURE;
-	}
+	transformDate(time_from, time_to, date, view);
 
 	initGraph(&graph, time_from, time_to);
 	
