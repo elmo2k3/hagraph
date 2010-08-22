@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Bjoern Biesenbach <bjoern@bjoern-b.de>
+ * Copyright (C) 2007-2010 Bjoern Biesenbach <bjoern@bjoern-b.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -68,9 +68,9 @@ Module, Sensoren:
 
 #include <libhagraph/libhagraph.h>
 
-#define MYSQL_HOST "bjoern-b.de"
+#define MYSQL_HOST ""
 #define MYSQL_USER "weather_bjoern"
-#define MYSQL_PASS "d48feCsxeR,XbDq9"
+#define MYSQL_PASS ""
 #define MYSQL_PORT 3306
 #define MYSQL_DATABASE "home_automation"
 #define MYSQL_DATABASE_WS2000 "wetterstation"
