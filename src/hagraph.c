@@ -18,43 +18,6 @@
         
         ./hagraph -x 1300 -y 900 -f 2007-12-1 -t 2007-12-30 -g 2 -h 0 -i 2 -j 1 (Programm ausführen)
 
-
-Paramter:
-        -x (PIXEL)              Bildbreite in Pixel
-        -y (PIXEL)              Bildhöhe in Pixel
-
-        -f (XXXX-YY-ZZ)         Datum von       Format: XXXX-YY-ZZ (X=Jahr, Y=Monat, Z=Tag)
-        -t (XXXX-YY-ZZ)         Datum bis
-
-        -g (MODUL)              erstes Modul    (Farbe: rot)
-        -h (SENSOR)             erster Sensor
-
-        -i (MODUL)              zweites Modul (optional)        (Farbe: blau)
-        -j (SENSOR)             zweiter Sensor (optional)
-
-        -k (MODUL)              drittes Modul (optional)        (Farbe: grün)
-        -l (SENSOR)             dritter Sensor (optional)
-
-        -m (MODUL)              viertes Modul (optional)        (Farbe: violett)
-        -n (SENSOR)             vierter Sensor (optional)
-
-        -o (MODUL)              fünftes Modul (optional)        (Farbe: orange)
-        -p (SENSOR)             fünfter Sensor (optional)
-
-Module, Sensoren:
-        Modul           Sensor          Ort
-        1               0               Bochum Küche
-        1               1               Bochum Gefrierfach
-        1               2               Bochum Kühlschrank
-
-        2               0               Vorlauf
-        2               1               Rücklauf
-
-        3               0               Bochum Schlafzimmer
-        3               1               Bochum Aussen
- * 
- * 
- * 
  */
 
 
@@ -98,7 +61,9 @@ void printUsage(char *progname)
             -q (MODUL)              sechses Modul (optional)        (Farbe: orange)\n\
             -r (SENSOR)             sechses Sensor (optional)\n\
 \n\
-            -z filename             Dateiname \n\n", progname);
+            -z filename             Dateiname \n\
+            -u                      Transparenz\n\
+            -v                      Invertiert\n\n", progname);
 }
 
 int main(int argc, char *argv[])
@@ -136,7 +101,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    while ((c = getopt (argc, argv, "f:t:x:y:g:h:i:j:k:l:m:n:o:p:q:r:z:")) != -1)
+    while ((c = getopt (argc, argv, "f:t:x:y:g:h:i:j:k:l:m:n:o:p:q:r:z:uv")) != -1)
     {
         switch(c)
         {
@@ -156,6 +121,8 @@ int main(int argc, char *argv[])
             case 'p':   modul_sensor[4][1] = atoi(optarg); modul_count++; break;
             case 'q':   modul_sensor[5][0] = atoi(optarg); break;
             case 'r':   modul_sensor[5][1] = atoi(optarg); modul_count++; break;
+            case 'u':   libhagraphSetTransparent(1); break;
+            case 'v':   libhagraphSetInverted(1); break;
             
             case 'z':   strcpy(file_output,optarg); break;
         }
