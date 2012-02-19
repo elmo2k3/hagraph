@@ -10,6 +10,6 @@ AM_CFLAGS+=@libhagraph_CFLAGS@
 if WIN32
 LIBS+= -lmysql
 else
-LIBS+= -lmysqlclient
+LIBS+= -lmysqlclient -L/usr/lib64/mysql -lpq
 endif
 

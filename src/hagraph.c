@@ -40,8 +40,9 @@ void printUsage(char *progname)
             -x (PIXEL)              Bildbreite in Pixel\n\
             -y (PIXEL)              Bildhöhe in Pixel\n\
 \n\
-            -f (XXXX-YY-ZZ)         Datum von       Format: XXXX-YY-ZZ (X=Jahr, Y=Monat, Z=Tag)\n\
-            -t (XXXX-YY-ZZ)         Datum bis\n\
+            -f (YYYY-MM-DD)         Datum von       Format: YYYY-MM-DD (YY=Jahr, M=Monat, D=Tag)\n\
+            -t (YYYY-MM-DD)         Datum bis\n\
+                                    m Monatsansicht y Yahresansicht (-tm oder -ty)\n\
 \n\
             -g (MODUL)              erstes Modul    (Farbe: rot)\n\
             -h (SENSOR)             erster Sensor\n\
