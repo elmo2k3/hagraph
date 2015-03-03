@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     
     for(c=0;c<modul_count;c++)
     {
-        addGraphData(&graph, modul_sensor[c][0], modul_sensor[c][1]);
+        addGraphData(&graph, modul_sensor[c][0], modul_sensor[c][1],2);
     }
 
     drawGraphPng(file_output, &graph, width, height);
